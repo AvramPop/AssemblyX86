@@ -10,32 +10,29 @@ import exit msvcrt.dll    ; exit is a function that ends the calling process. It
 
 ; our data is declared here (the variables needed by our program)
 segment data use32 class=data
-    a db -10
-    b db -25
-    c db -70
-    d db 20
+    a db -3
+    b db -5
+    c db 8
+    d db 12
     x db 0
 
 ; our code starts here
 segment code use32 class=code
     start:
         xor eax, eax
-        mov al, [d]
-        add al, [d]
-        add al, [d]
+        xor edx, edx
         
-        mov [d], ax
-        
-        xor eax, eax
-        mov al, [a]
-        sub al, [b]
-        
-        mov [a], al
-        
-        xor eax, eax
         mov al, [c]
-        sub al, [d]
-        add al, [a]
+        mov dl, [d]
+        add dl, [d]
+        add dl, [d]
+        
+        sub al, dl
+        
+        mov dl, [a]
+        sub dl, [b]
+        
+        add al, dl
         
         mov [x], al
     
