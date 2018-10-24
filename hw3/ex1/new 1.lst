@@ -40,23 +40,22 @@
     40 00000040 66A1[01000000]              mov ax, [b]
     41 00000046 6650                        push ax
     42 00000048 58                          pop eax                         ;eax = b
-    43                                      ;mov eax, 0
-    44                                      ;mov eax, word [b]
-    45 00000049 BA00000000                  mov edx, 0                  ;edx:eax = b
-    46 0000004E 8B1D[07000000]              mov ebx, dword [d]   
-    47 00000054 8B0D[0B000000]              mov ecx, dword [d + 4]   ;ecx:ebx = d
-    48 0000005A 01D8                        add eax, ebx
-    49 0000005C 11CA                        adc edx, ecx                    ;edx:eax = edx:eax + ecx:ebx = b + d
-    50                                      
-    51 0000005E 5B                          pop ebx                             ; ebx = dx:ax = a + b + a + c
-    52 0000005F B900000000                  mov ecx, 0                         
-    53                                      
-    54 00000064 01D8                        add eax, ebx
-    55 00000066 11CA                        adc edx, ecx                    ;edx:eax = edx:eax + ecx:ebx = a + b + a + c + b + d
-    56                                      
-    57 00000068 2B05[07000000]              sub eax, dword [d]
-    58 0000006E 1B15[0B000000]              sbb edx, dword [d + 4]      ;edx:eax = ((a + b) + (a + c) + (b + c)) - d
+    43 00000049 BA00000000                  mov edx, 0                  ;edx:eax = b
+    44                                      
+    45 0000004E 8B1D[07000000]              mov ebx, dword [d]   
+    46 00000054 8B0D[0B000000]              mov ecx, dword [d + 4]   ;ecx:ebx = d
+    47 0000005A 01D8                        add eax, ebx
+    48 0000005C 11CA                        adc edx, ecx                    ;edx:eax = edx:eax + ecx:ebx = b + d
+    49                                      
+    50 0000005E 5B                          pop ebx                             ; ebx = dx:ax = a + b + a + c
+    51 0000005F B900000000                  mov ecx, 0                         
+    52                                      
+    53 00000064 01D8                        add eax, ebx
+    54 00000066 11CA                        adc edx, ecx                    ;edx:eax = edx:eax + ecx:ebx = a + b + a + c + b + d
+    55                                      
+    56 00000068 2B05[07000000]              sub eax, dword [d]
+    57 0000006E 1B15[0B000000]              sbb edx, dword [d + 4]      ;edx:eax = ((a + b) + (a + c) + (b + c)) - d
+    58                                      
     59                                      
-    60                                      
-    61 00000074 6A00                    	push   dword 0 ;saves on stack the parameter of the function exit
-    62 00000076 FF15[00000000]          	call   [exit] ; function exit is called in order to end the execution of
+    60 00000074 6A00                    	push   dword 0 ;saves on stack the parameter of the function exit
+    61 00000076 FF15[00000000]          	call   [exit] ; function exit is called in order to end the execution of

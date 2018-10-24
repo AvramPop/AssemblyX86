@@ -40,9 +40,8 @@ start:
     mov ax, [b]
     push ax
     pop eax                         ;eax = b
-    ;mov eax, 0
-    ;mov eax, word [b]
     mov edx, 0                  ;edx:eax = b
+    
     mov ebx, dword [d]   
     mov ecx, dword [d + 4]   ;ecx:ebx = d
     add eax, ebx
