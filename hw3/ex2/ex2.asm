@@ -19,14 +19,14 @@ segment  code use32 class=code ; code segment
 start: 
 	mov al, [a]
     cbw
-    add ax, [b]
+    add ax, [b] ;ax = a + b
     cwd
     
     mov bx, word [c]
     mov cx, word [c + 2]
     
     add ax, bx
-    adc dx, cx
+    adc dx, cx ;dx:ax = a + b + c
     
     push dx
     push ax
@@ -34,7 +34,7 @@ start:
     cdq
     
     sub eax, dword [d]
-    sbb edx, dword [d + 4]
+    sbb edx, dword [d + 4] ;edx:eax = (a + b + c) - d
     
     push edx
     push eax
@@ -45,7 +45,7 @@ start:
     mov cx, word [c + 2]
     
     sub ax, bx
-    sbb dx, cx
+    sbb dx, cx ;dx:ax = b - c
     
     push dx
     push ax
@@ -56,7 +56,7 @@ start:
     pop edx
     
     add eax, ebx
-    adc edx, ecx
+    adc edx, ecx ;edx:eax = (a + b + c) - d + (b - c)
 	
 	push   dword 0 ;saves on stack the parameter of the function exit
 	call   [exit] ; function exit is called in order to end the execution of

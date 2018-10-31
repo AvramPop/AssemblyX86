@@ -19,14 +19,14 @@
     19                                  start: 
     20 00000000 A0[00000000]            	mov al, [a]
     21 00000005 6698                        cbw
-    22 00000007 660305[01000000]            add ax, [b]
+    22 00000007 660305[01000000]            add ax, [b] ;ax = a + b
     23 0000000E 6699                        cwd
     24                                      
     25 00000010 668B1D[03000000]            mov bx, word [c]
     26 00000017 668B0D[05000000]            mov cx, word [c + 2]
     27                                      
     28 0000001E 6601D8                      add ax, bx
-    29 00000021 6611CA                      adc dx, cx
+    29 00000021 6611CA                      adc dx, cx ;dx:ax = a + b + c
     30                                      
     31 00000024 6652                        push dx
     32 00000026 6650                        push ax
@@ -34,7 +34,7 @@
     34 00000029 99                          cdq
     35                                      
     36 0000002A 2B05[07000000]              sub eax, dword [d]
-    37 00000030 1B15[0B000000]              sbb edx, dword [d + 4]
+    37 00000030 1B15[0B000000]              sbb edx, dword [d + 4] ;edx:eax = (a + b + c) - d
     38                                      
     39 00000036 52                          push edx
     40 00000037 50                          push eax
@@ -45,7 +45,7 @@
     45 00000047 668B0D[05000000]            mov cx, word [c + 2]
     46                                      
     47 0000004E 6629D8                      sub ax, bx
-    48 00000051 6619CA                      sbb dx, cx
+    48 00000051 6619CA                      sbb dx, cx ;dx:ax = b - c
     49                                      
     50 00000054 6652                        push dx
     51 00000056 6650                        push ax
@@ -56,7 +56,7 @@
     56 0000005F 5A                          pop edx
     57                                      
     58 00000060 01D8                        add eax, ebx
-    59 00000062 11CA                        adc edx, ecx
+    59 00000062 11CA                        adc edx, ecx ;edx:eax = (a + b + c) - d + (b - c)
     60                                  	
     61 00000064 6A00                    	push   dword 0 ;saves on stack the parameter of the function exit
     62 00000066 FF15[00000000]          	call   [exit] ; function exit is called in order to end the execution of

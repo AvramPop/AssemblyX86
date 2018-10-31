@@ -1,5 +1,5 @@
 ; Write a program in assembly language which computes one of the following arithmetic expressions, considering the following domains for the variables: 
-; a-(7+x)/(b*b-c/d+2) - unsigned representation
+; a-(7+x)/(b*b-c/d+2) - signed representation
 ; a-doubleword; b,c,d-byte; x-qword
 bits 32 ;assembling for the 32 bits architecture
 ; the start label will be the entry point in the program
@@ -13,37 +13,42 @@ segment  data use32 class=data ; the data segment where the variables are declar
 	a dd 100
 	b db 2
 	c db 50
-	d db 20
-    x dq 5
+	d db -20
+    x dq -10
     i dw 0
 	
 segment  code use32 class=code ; code segment
 start: 
 	mov eax, [x]
-    mov edx, [x + 4] ; edx:eax = x
-    mov ebx, 7
-    mov ecx, 0
+    mov edx, [x + 4]  ; edx:eax = x
+    push eax
+    push edx
+    mov eax, 7
+    cdq
+    pop ecx,
+    pop ebx
     
     add eax, ebx
-    adc edx, ecx ; edx:eax = x + 7
+    adc edx, ecx ;edx:eax = x + 7
     
     push edx
     push eax
     
     mov eax, 0
     mov edx, 0
+    
     mov al, [b]
-    mul byte [b]
+    imul byte [b]
     mov bx, ax ; bx = b * b
     
     mov al, [c]
-    mov ah, 0
+    cbw
     mov dl, [d]
-    div dl ; al = c/d
-    mov ah, 0
+    idiv dl ;al = c/d
+    cbw
     
     sub bx, ax
-    add bx, 2 ; bx = b * b - c/d + 2
+    add bx, 2  ; bx = b * b - c/d + 2
     
     push word [i]
     push bx
@@ -51,7 +56,7 @@ start:
     
     pop eax
     pop edx
-    div ebx ; eax = (x + 7) /  (b * b - c/d + 2)
+    idiv ebx ; eax = (x + 7) /  (b * b - c/d + 2)
     
     mov ebx, [a]
     sub ebx, eax ; ebx = a-(7+x)/(b*b-c/d+2) 
