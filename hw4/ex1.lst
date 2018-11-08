@@ -1,4 +1,4 @@
-     1                                  ; Given the words A and B, compute the byte C as follows:
+     1                                  ; 8. Given the words A and B, compute the byte C as follows:
      2                                  ; the bits 0-5 are the same as the bits 5-10 of A
      3                                  ; the bits 6-7 are the same as the bits 1-2 of B.
      4                                  ; Compute the doubleword D as follows:

@@ -1,0 +1,63 @@
+     1                                  ; 26. Se da un sir de octeti S. Sa se determine maximul elementelor de pe pozitiile pare si minimul elementelor de pe pozitiile impare din S. 
+     2                                  ; Exemplu:
+     3                                  ; S: 1, 4, 2, 3, 8, 4, 9, 5
+     4                                  ; max_poz_pare: 9
+     5                                  ; min_poz_impare: 3
+     6                                  bits 32 ;assembling for the 32 bits architecture
+     7                                  ; the start label will be the entry point in the program
+     8                                  global  start 
+     9                                  
+    10                                  extern  exit ; we inform the assembler that the exit symbol is foreign, i.e. it exists even if we won't be defining it
+    11                                  
+    12                                  import  exit msvcrt.dll; exit is a function that ends the process, it is defined in msvcrt.dll
+    13                                          ; msvcrt.dll contains exit, printf and all the other important C-runtime functions
+    14                                  segment  data use32 class=data ; the data segment where the variables are declared 
+    15 00000000 0104020308040905            s db 1, 4, 2, 3, 8, 4, 9, 5
+    16                                      lenS equ $-s
+    17 00000008 00                          max_even db 0
+    18 00000009 00                          min_odd db 0
+    19                                  
+    20                                  segment  code use32 class=code ; code segment
+    21                                  start:
+    22 00000000 BE02000000                  mov ESI, 2 ; ESI = 2, will use ESI as index for the loop
+    23                                                          ; first number goes as first max, second as first minimum, so we have what to compare to
+    24 00000005 A0[00000000]                mov AL, [s]
+    25 0000000A A2[08000000]                mov [max_even], AL
+    26 0000000F A0[01000000]                mov AL, [s + 1]
+    27 00000014 A2[09000000]                mov [min_odd], AL
+    28                                      
+    29                                      repeat:
+    30 00000019 8A86[00000000]                  mov al, [s + esi] ; AL <- the byte from the offset s + ESI
+    31                                          
+    32 0000001F F7C601000000                    test ESI, 1 ; check whether ESI is odd (that is, the position we are currently at)
+    33 00000025 7502                            jnz is_odd_position ;jump to is_odd_position label if index is odd
+    34 00000027 740A                            jz is_even_position ;jump to is_even_position label if index is even
+    35                                          
+    36                                          is_odd_position:
+    37 00000029 3A05[09000000]                      cmp al, [min_odd]
+    38 0000002F 720C                                jb assign_min_odd ;jump to assign_min_odd label if current value on odd index is smaller that the current minimum
+    39 00000031 EB18                                jmp go_on ;go to next iteration if didn't find new minimum
+    40                                           
+    41                                          is_even_position:
+    42 00000033 3A05[08000000]                      cmp al, [max_even]
+    43 00000039 7709                                ja assign_max_even ;jump to assign_max_even label if current value on even index is bigger that the current maximum
+    44 0000003B EB0E                                jmp go_on ;go to next iteration if didn't find new maximum
+    45                                              
+    46                                          assign_min_odd:
+    47 0000003D A2[09000000]                        mov [min_odd], AL ; set the minumum to new minimum, which is in AL   
+    48 00000042 EB07                                jmp go_on ;go to next iteration
+    49                                              
+    50                                          assign_max_even:
+    51 00000044 A2[08000000]                        mov [max_even], AL ; set the minumum to new minimum, which is in AL
+    52 00000049 EB00                                jmp go_on ;go to next iteration 
+    53                                          
+    54                                          go_on: ; always execute this while iteration not done
+    55 0000004B 46                                  inc ESI ; ESI = ESI+1; move to the next index in string s
+    56 0000004C 83FE08                              cmp ESI, lenS
+    57 0000004F 72C8                                jb repeat ;do until all s passed through
+    58                                              
+    59                                      ;the minimum on odd positions is stored in byte min_odd
+    60                                      ;the maximum on even positions is stored in byte max_even    
+    61                                      
+    62 00000051 6A00                    	push   dword 0 ;saves on stack the parameter of the function exit
+    63 00000053 FF15[00000000]          	call   [exit] ; function exit is called in order to end the execution of
