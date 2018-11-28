@@ -1,10 +1,10 @@
-; A string of doublewords is given. 
+; 17. A string of doublewords is given. 
 ; Order in decreasing order the string of the low words (least significant) from these doubleword. 
 ; The high words (most significant) remain unchanged.
 ; being given
 ; sir DD 12345678h 1256ABCDh, 12AB4344h
 ; the result will be
-; 1234ABCDh, 12565678h, 12AB4344h.
+; 1234ABCDh, 12565678h, 12AB4344h
 bits 32 ;assembling for the 32 bits architecture
 ; the start label will be the entry point in the program
 global  start 

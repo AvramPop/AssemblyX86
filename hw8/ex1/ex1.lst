@@ -1,0 +1,68 @@
+     1                                  ; 27. A character string is given (defined in the data segment). Read one character from the keyboard, then count the number of occurences of that character in the given string and display the character along with i
+     2                                  bits 32 ; assembling for the 32 bits architecture
+     3                                  
+     4                                  ; declare the EntryPoint (a label defining the very first instruction of the program)
+     5                                  global start        
+     6                                  
+     7                                  ; declare external functions needed by our program
+     8                                  extern exit, printf, scanf               ; tell nasm that exit exists even if we won't be defining it
+     9                                  import printf msvcrt.dll
+    10                                  import scanf msvcrt.dll
+    11                                  import exit msvcrt.dll    ; exit is a function that ends the calling process. It is defined in msvcrt.dll
+    12                                                            ; msvcrt.dll contains exit, printf and all the other important C-runtime specific functions
+    13                                  
+    14                                  ; our data is declared here (the variables needed by our program)
+    15                                  segment data use32 class=data
+    16 00000000 54686520717569636B-         string db 'The quick fox jumps over the lazy turtle'
+    16 00000009 20666F78206A756D70-
+    16 00000012 73206F766572207468-
+    16 0000001B 65206C617A79207475-
+    16 00000024 72746C65           
+    17 00000028 28000000                    len dd ($ - string)
+    18 0000002C 636861726163746572-         characterMessage db 'character =', 0
+    18 00000035 203D00             
+    19 00000038 636861726163746572-         occurencesMessage db 'character %c appears %d times in string', 0 
+    19 00000041 202563206170706561-
+    19 0000004A 72732025642074696D-
+    19 00000053 657320696E20737472-
+    19 0000005C 696E6700           
+    20 00000060 00000000                    char dd 0
+    21 00000064 256300                      format db '%c', 0
+    22                                  
+    23                                  ; our code starts here
+    24                                  segment code use32 class=code
+    25                                      start:
+    26 00000000 68[2C000000]                    push dword characterMessage
+    27 00000005 FF15[00000000]                  call [printf]
+    28 0000000B 83C404                          add esp, 4 * 1
+    29                                          
+    30 0000000E 68[60000000]                    push dword char
+    31 00000013 68[64000000]                    push dword format
+    32 00000018 FF15[00000000]                  call [scanf]
+    33 0000001E 83C408                          add esp, 4 * 2
+    34                                          
+    35 00000021 BE[00000000]                    mov esi, string
+    36 00000026 BB00000000                      mov ebx, 0
+    37 0000002B 8B0D[28000000]                  mov ecx, [len]
+    38 00000031 FC                              cld
+    39                                          fori:
+    40 00000032 AC                                  lodsb
+    41 00000033 3A05[60000000]                      cmp al, [char]
+    42 00000039 7402                                je increase_ebx
+    43 0000003B 7501                                jne go_on
+    44                                              increase_ebx:
+    45 0000003D 43                                      inc ebx
+    46                                              
+    47                                              go_on:
+    48 0000003E 6649                                dec cx
+    49 00000040 6683F900                            cmp cx, 0
+    50 00000044 77EC                                ja fori
+    51                                           
+    52 00000046 53                              push dword ebx
+    53 00000047 FF35[60000000]                  push dword [char]
+    54 0000004D 68[38000000]                    push occurencesMessage
+    55 00000052 FF15[00000000]                  call [printf]
+    56                                              
+    57                                          
+    58 00000058 6A00                            push    dword 0      ; push the parameter for exit onto the stack
+    59 0000005A FF15[00000000]                  call    [exit]       ; call exit to terminate the program
