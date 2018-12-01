@@ -1,205 +1,227 @@
-     1                                  bits 32 
+     1                                  ;27. A text file is given. The text file contains numbers (in base 10) separated by spaces. Read the content of the file, determine the minimum number (from the numbers that have been read) and write the result at t
      2                                  
-     3                                  global start        
+     3                                  bits 32 
      4                                  
-     5                                  extern exit, fopen, fclose, fread, printf, fprintf, fwrite
-     6                                  import exit msvcrt.dll 
-     7                                  import fopen msvcrt.dll 
-     8                                  import fread msvcrt.dll 
-     9                                  import fclose msvcrt.dll 
-    10                                  import printf msvcrt.dll
-    11                                  import fprintf msvcrt.dll
-    12                                  import fwrite msvcrt.dll
-    13                                  
-    14                                  ; our data is declared here 
-    15                                  segment data use32 class=data
-    16 00000000 696E7075742E747874-     file_name db "input.txt", 0   ; 
-    16 00000009 00                 
-    17 0000000A 6100                        access_mode db "a", 0       
-    18 0000000C FFFFFFFF                    file_descriptor dd -1      
-    19 00000010 00000000                min dd 0
-    20 00000014 696E7075742E747874-         nume_fisier db "input.txt", 0 
-    20 0000001D 00                 
-    21 0000001E 7200                        mod_acces db "r", 0             
-    22 00000020 FFFFFFFF                    descriptor_fis dd -1     
-    23 00000024 00000000                    nr_car_citite dd 0              
-    24                                      len equ 1        
-    25 00000028 01                          one db 1    ;
-    26 00000029 0A                          ten db 10
-    27 0000002A 64                          hundred db 100
-    28 0000002B 6D696E203D20256420-         formatmin db "min = %d ", 0
-    28 00000034 00                 
-    29 00000035 6E203D2025642000            format db "n = %d ", 0
-    30 0000003D 206D696E203D2000            newline db " min = ", 0
-    31 00000045 00                          text db "", 0
-    32 00000046 <res 00000001>              buffer resb len                 
-    33                                  
-    34                                  
-    35                                  ; our code starts here
-    36                                  segment code use32 class=code
-    37                                      start:
-    38                                          ; open file reading mode
-    39 00000000 68[1E000000]                    push dword mod_acces
-    40 00000005 68[14000000]                    push dword nume_fisier
-    41 0000000A FF15[00000000]                  call [fopen]
-    42 00000010 83C408                          add esp, 4*2
-    43                                          ; if error jump to end
-    44 00000013 83F800                          cmp eax, 0                  
-    45 00000016 0F8457010000                    je final
-    46                                          
-    47 0000001C A3[20000000]                    mov [descriptor_fis], eax  
-    48 00000021 BBA0860100                      mov ebx, 100000 ; ebx will hold the minimum
-    49 00000026 BA00000000                      mov edx, 0 ; edx will be the actual number read
-    50                                          bucla:
-    51                                  
-    52 0000002B 52                                  push edx ; save edx
-    53                                              ; read first char in file
-    54 0000002C FF35[20000000]                      push dword [descriptor_fis] 
-    55 00000032 6A01                                push dword len
-    56 00000034 6A01                                push dword 1
-    57 00000036 68[46000000]                        push dword buffer
-    58 0000003B FF15[00000000]                      call [fread]
-    59 00000041 83C410                              add esp, 4*4
-    60                                              
-    61 00000044 5A                                  pop edx ; retrieve edx
-    62 00000045 83F800                              cmp eax, 0  ; if final of file jump to end of loop        
-    63 00000048 743E                                je end_loop
-    64                                  
-    65 0000004A A3[24000000]                        mov [nr_car_citite], eax      
-    66                                              ; save into eax the char read
-    67 0000004F BE[46000000]                        mov esi, buffer
-    68 00000054 B800000000                          mov eax, 0 
-    69 00000059 AC                                  lodsb
-    70 0000005A 83F820                              cmp eax, ' ' 
-    71                                              ; if eax is space, compare the actual number to minimum, else buil the actual number
-    72 0000005D 7402                                je compare_to_min
-    73 0000005F 7514                                jne build_actual_number
-    74                                                  
-    75                                                  compare_to_min:
-    76                                                  ; check if actual number  (in edx) is smaller than minimum (ebx). if true, assign_min
-    77 00000061 39D3                                    cmp ebx, edx 
-    78                                                  
-    79 00000063 7707                                    ja assign_min
-    80 00000065 BA00000000                              mov edx, 0
-    81 0000006A EBBF                                    jmp bucla
-    82                                                  
-    83                                                      assign_min:
-    84 0000006C 89D3                                        mov ebx, edx
-    85 0000006E BA00000000                                  mov edx, 0
-    86 00000073 EBB6                                        jmp bucla
-    87                                                  ; append last digit read to actual number in edx
-    88                                                  build_actual_number:
-    89 00000075 83E830                                      sub eax, '0' ; eax = last digit read
-    90 00000078 89C1                                        mov ecx, eax ; save last digit read in ecx
-    91 0000007A 89D0                                        mov eax, edx ; move into eax the number built until now
-    92 0000007C F625[29000000]                              mul byte [ten] ; 
-    93 00000082 01C8                                        add eax, ecx ;eax = number build till now * 10 + last digit read
-    94 00000084 89C2                                        mov edx, eax ; save updated number in edx
-    95                                                  
-    96 00000086 EBA3                                jmp bucla
-    97                                          
-    98                                              
-    99                                          
-   100                                        end_loop:
-   101                                              ; if last number smaller than minim, assign
-   102 00000088 39D3                                cmp ebx, edx ;ebx holds min, edx holds actual number
-   103                                                  
-   104 0000008A 7702                                ja assign_min1
-   105 0000008C EB04                                jmp cleanup
-   106                                              
-   107                                                  assign_min1:
-   108 0000008E 89D3                                    mov ebx, edx
-   109 00000090 EB00                                    jmp cleanup
-   110                                                  
-   111                                          cleanup:
-   112                                          
-   113                                          ; close file reading mode
-   114 00000092 FF35[20000000]                  push dword [descriptor_fis]
-   115 00000098 FF15[00000000]                  call [fclose]
-   116 0000009E 83C404                          add esp, 4
-   117                                  ; open file append mode
-   118 000000A1 68[0A000000]                    push dword access_mode     
-   119 000000A6 68[00000000]                    push dword file_name
-   120 000000AB FF15[00000000]                  call [fopen]
-   121 000000B1 83C408                          add esp, 4*2              
-   122 000000B4 A3[0C000000]                    mov [file_descriptor], eax 
-   123 000000B9 83F800                          cmp eax, 0
-   124 000000BC 0F84B1000000                    je final
-   125                                  ;print format for minimum in file
-   126 000000C2 68[3D000000]                    push dword newline
-   127 000000C7 FF35[0C000000]                  push dword [file_descriptor]
-   128 000000CD FF15[00000000]                  call [fprintf]
-   129 000000D3 83C408                          add esp, 4*2
-   130 000000D6 58                              pop eax
-   131                                          ;save minimum (ebx) into eax
-   132 000000D7 89D8                            mov eax, ebx
-   133 000000D9 F635[2A000000]                  div byte [hundred]
-   134                                          ;get hundreds digit of minimum. if existent, print to file
-   135 000000DF 88E7                            mov bh, ah
-   136 000000E1 3C00                            cmp al, 0
-   137 000000E3 7502                            jne print_digit_in_al1
-   138 000000E5 EB1F                            jmp go_on1
-   139                                          
-   140                                              print_digit_in_al1:
-   141                                           
-   142 000000E7 0430                                    add al, '0'
+     5                                  global start        
+     6                                  
+     7                                  extern exit, fopen, fclose, fread, printf, fprintf, fwrite
+     8                                  import exit msvcrt.dll 
+     9                                  import fopen msvcrt.dll 
+    10                                  import fread msvcrt.dll 
+    11                                  import fclose msvcrt.dll 
+    12                                  import printf msvcrt.dll
+    13                                  import fprintf msvcrt.dll
+    14                                  import fwrite msvcrt.dll
+    15                                  
+    16                                  ; our data is declared here 
+    17                                  segment data use32 class=data
+    18 00000000 696E7075742E747874-     file_name db "input.txt", 0   
+    18 00000009 00                 
+    19 0000000A 6100                        access_mode db "a", 0       
+    20 0000000C FFFFFFFF                    file_descriptor dd -1      
+    21 00000010 00000000                min dd 0
+    22 00000014 696E7075742E747874-         nume_fisier db "input.txt", 0 
+    22 0000001D 00                 
+    23 0000001E 696E7075742E747874-     nume_fisier_app db "input.txt", 0    
+    23 00000027 00                 
+    24 00000028 7200                        mod_acces db "r", 0             
+    25 0000002A 6100                        appendMod db "a", 0
+    26 0000002C FFFFFFFF                    descriptor_fis dd -1     
+    27 00000030 FFFFFFFF                descriptor_fis_app dd -1     
+    28 00000034 00000000                    nr_car_citite dd 0              
+    29                                      len equ 1        
+    30 00000038 01                      one db 1    ;
+    31 00000039 0A                          ten db 10
+    32 0000003A 64                              hundred db 100
+    33 0000003B 6D696E203D20256420-         formatmin db "min = %d ", 0
+    33 00000044 00                 
+    34 00000045 6E203D2025642000            format db "n = %d ", 0
+    35 0000004D 206D696E203D2000            newline db " min = ", 0
+    36 00000055 00                          text db "", 0
+    37 00000056 <res 00000001>              buffer resb len                 
+    38                                  
+    39                                  
+    40                                  ; our code starts here
+    41                                  segment code use32 class=code
+    42                                      start:
+    43                                                  ; open file reading mode
+    44 00000000 68[28000000]                    push dword mod_acces
+    45 00000005 68[14000000]                    push dword nume_fisier
+    46 0000000A FF15[00000000]                  call [fopen]
+    47 00000010 83C408                          add esp, 4*2
+    48                                   ; if error jump to end
+    49 00000013 83F800                          cmp eax, 0                  
+    50 00000016 0F8488010000                    je final
+    51                                          
+    52 0000001C A3[2C000000]                    mov [descriptor_fis], eax  
+    53 00000021 BBA0860100                      mov ebx, 100000; ebx will hold the minimum
+    54 00000026 BA00000000                      mov edx, 0; edx will be the actual number read
+    55                                          bucla:
+    56                                  
+    57 0000002B 52                                  push edx ; save edx
+    58                                              ; read first char in file
+    59 0000002C FF35[2C000000]                      push dword [descriptor_fis]
+    60 00000032 6A01                                push dword len
+    61 00000034 6A01                                push dword 1
+    62 00000036 68[56000000]                        push dword buffer
+    63 0000003B FF15[00000000]                      call [fread]
+    64 00000041 83C410                              add esp, 4*4
+    65                                              
+    66 00000044 5A                                  pop edx ; retrieve edx
+    67 00000045 83F800                              cmp eax, 0   ; if final of file jump to end of loop          
+    68 00000048 744F                                je end_loop
+    69                                  
+    70 0000004A A3[34000000]                        mov [nr_car_citite], eax      
+    71                                               ; save into eax the char read
+    72 0000004F BE[56000000]                        mov esi, buffer
+    73 00000054 B800000000                          mov eax, 0 
+    74 00000059 AC                                  lodsb
+    75 0000005A 83F820                              cmp eax, ' '
+    76                                              ;if eax is space, compare the actual number to minimum, else buil the actual number
+    77 0000005D 7402                                je compare_to_min
+    78                                              ; check if actual number  (in edx) is smaller than minimum (ebx). if true, assign_min
+    79 0000005F 7525                                jne build_actual_number
+    80                                                  
+    81                                                  compare_to_min:
+    82 00000061 52                                      push edx ; save edx
+    83                                              
+    84 00000062 52                                      push dword edx
+    85 00000063 68[45000000]                            push dword format 
+    86 00000068 FF15[00000000]                          call [printf]     
+    87 0000006E 83C408                                  add esp, 4 * 2 
+    88                                                  
+    89 00000071 5A                                      pop edx ; retrieve edx
+    90                                                  
+    91 00000072 39D3                                    cmp ebx, edx 
+    92                                                  
+    93 00000074 7707                                    ja assign_min
+    94 00000076 BA00000000                              mov edx, 0
+    95 0000007B EBAE                                    jmp bucla
+    96                                                   ; append last digit read to actual number in edx
+    97                                                      assign_min:
+    98 0000007D 89D3                                        mov ebx, edx
+    99 0000007F BA00000000                                  mov edx, 0
+   100 00000084 EBA5                                        jmp bucla
+   101                                              
+   102                                                  build_actual_number:
+   103 00000086 83E830                                      sub eax, '0' ; eax = last digit read
+   104 00000089 89C1                                        mov ecx, eax ; save last digit read in ecx
+   105 0000008B 89D0                                        mov eax, edx ; move into eax the number built until now
+   106 0000008D F625[39000000]                              mul byte [ten] ; 
+   107 00000093 01C8                                        add eax, ecx ;eax = number build till now * 10 + last digit read
+   108 00000095 89C2                                        mov edx, eax ; save updated number in edx
+   109                                                  
+   110 00000097 EB92                                jmp bucla
+   111                                          
+   112                                              
+   113                                          
+   114                                        end_loop:
+   115 00000099 52                                  push edx ; save edx
+   116                                              
+   117 0000009A 52                                  push dword edx ;ebx holds min, edx holds actual number
+   118 0000009B 68[45000000]                        push dword format 
+   119 000000A0 FF15[00000000]                      call [printf]      
+   120 000000A6 83C408                              add esp, 4 * 2 
+   121                                              
+   122 000000A9 5A                                  pop edx ; retrieve edx
+   123                                              
+   124 000000AA 39D3                                cmp ebx, edx ;ebx holds min, edx holds actual number
+   125                                                  
+   126 000000AC 7702                                ja assign_min1
+   127 000000AE EB04                                jmp cleanup
+   128                                              
+   129                                                  assign_min1:
+   130 000000B0 89D3                                    mov ebx, edx
+   131 000000B2 EB00                                    jmp cleanup
+   132                                          cleanup:
+   133                                           ; close file reading mode
+   134                                          
+   135 000000B4 FF35[2C000000]                  push dword [descriptor_fis]
+   136 000000BA FF15[00000000]                  call [fclose]
+   137 000000C0 83C404                          add esp, 4
+   138                                          ; open file append mode
+   139 000000C3 53                                      push dword ebx
+   140 000000C4 68[3B000000]                        push dword formatmin 
+   141 000000C9 FF15[00000000]                      call [printf]      
+   142 000000CF 83C408                              add esp, 4 * 2 
    143                                  
-   144 000000E9 B400                                    mov ah, 0
-   145 000000EB A3[45000000]                            mov [text], eax
-   146 000000F0 50                                      push eax
-   147 000000F1 68[45000000]                            push dword text
-   148 000000F6 FF35[0C000000]                          push dword [file_descriptor]
-   149 000000FC FF15[00000000]                          call [fprintf]
-   150 00000102 83C408                                  add esp, 4*2
-   151 00000105 58                                      pop eax
-   152                                          
-   153                                          go_on1:
-   154 00000106 88F8                            mov al, bh
-   155 00000108 B400                            mov ah, 0
-   156 0000010A F635[29000000]                  div byte [ten]
-   157                                          ;get tens digit of minimum. if existent, print to file
-   158 00000110 88E7                            mov bh, ah
-   159 00000112 3C00                            cmp al, 0
-   160 00000114 7502                            jne print_digit_in_al2
-   161 00000116 EB1F                            jmp go_on2
-   162                                          
-   163                                              print_digit_in_al2:
-   164 00000118 0430                                    add al, '0'
-   165                                  
-   166 0000011A B400                                    mov ah, 0
-   167 0000011C A3[45000000]                            mov [text], eax
-   168 00000121 50                                      push eax
-   169 00000122 68[45000000]                            push dword text
-   170 00000127 FF35[0C000000]                          push dword [file_descriptor]
-   171 0000012D FF15[00000000]                          call [fprintf]
-   172 00000133 83C408                                  add esp, 4*2
-   173 00000136 58                                      pop eax    
-   174                                                  
-   175                                          go_on2:
-   176 00000137 88F8                            mov al, bh
-   177 00000139 B400                            mov ah, 0
-   178 0000013B F635[28000000]                  div byte [one]
-   179                                           ;get ones digit of minimum. if existent, print to file
-   180 00000141 3C00                            cmp al, 0
-   181 00000143 7502                            jne print_digit_in_al3
-   182 00000145 EBF0                            jmp go_on2
-   183                                              
-   184                                              print_digit_in_al3:
-   185 00000147 0430                                    add al, '0'
-   186 00000149 B400                                    mov ah, 0
-   187 0000014B A3[45000000]                            mov [text], eax
-   188 00000150 68[45000000]                            push dword text
-   189 00000155 FF35[0C000000]                          push dword [file_descriptor]
-   190 0000015B FF15[00000000]                          call [fprintf]
-   191 00000161 83C408                                  add esp, 4*2
-   192                                                  
-   193                                          ; close file append mode
-   194 00000164 FF35[0C000000]                  push dword [file_descriptor]
-   195 0000016A FF15[00000000]                  call [fclose]
-   196 00000170 83C404                          add esp, 4
-   197                                  
-   198                                          
-   199                                        final:  
-   200                                          ; exit(0)
-   201 00000173 6A00                            push    dword 0      
-   202 00000175 FF15[00000000]                  call    [exit]       
+   144 000000D2 68[0A000000]                    push dword access_mode     
+   145 000000D7 68[00000000]                    push dword file_name
+   146 000000DC FF15[00000000]                  call [fopen]
+   147 000000E2 83C408                          add esp, 4*2              
+   148 000000E5 A3[0C000000]                    mov [file_descriptor], eax 
+   149 000000EA 83F800                          cmp eax, 0
+   150 000000ED 0F84B1000000                    je final
+   151                                  ;print format for minimum in file
+   152 000000F3 68[4D000000]                    push dword newline
+   153 000000F8 FF35[0C000000]                          push dword [file_descriptor]
+   154 000000FE FF15[00000000]                          call [fprintf]
+   155 00000104 83C408                                  add esp, 4*2
+   156 00000107 58                                      pop eax
+   157                                          ;save minimum (ebx) into eax
+   158 00000108 89D8                            mov eax, ebx
+   159 0000010A F635[3A000000]                  div byte [hundred]
+   160                                           ;get hundreds digit of minimum. if existent, print to file
+   161 00000110 88E7                                            mov bh, ah
+   162 00000112 3C00                            cmp al, 0
+   163 00000114 7502                            jne print_digit_in_al1
+   164 00000116 EB1F                            jmp go_on1
+   165                                              print_digit_in_al1:
+   166                                           
+   167 00000118 0430                                    add al, '0'
+   168                                  
+   169 0000011A B400                                    mov ah, 0
+   170 0000011C A3[55000000]                            mov [text], eax
+   171 00000121 50                                      push eax
+   172 00000122 68[55000000]                            push dword text
+   173 00000127 FF35[0C000000]                          push dword [file_descriptor]
+   174 0000012D FF15[00000000]                          call [fprintf]
+   175 00000133 83C408                                  add esp, 4*2
+   176 00000136 58                                      pop eax
+   177                                          
+   178                                          go_on1:
+   179 00000137 88F8                            mov al, bh
+   180 00000139 B400                            mov ah, 0
+   181 0000013B F635[39000000]                  div byte [ten]
+   182                                            ;get tens digit of minimum. if existent, print to file
+   183 00000141 88E7                            mov bh, ah
+   184 00000143 3C00                            cmp al, 0
+   185 00000145 7502                            jne print_digit_in_al2
+   186 00000147 EB1F                            jmp go_on2
+   187                                              print_digit_in_al2:
+   188 00000149 0430                                    add al, '0'
+   189                                  
+   190 0000014B B400                                    mov ah, 0
+   191 0000014D A3[55000000]                            mov [text], eax
+   192 00000152 50                                      push eax
+   193 00000153 68[55000000]                            push dword text
+   194 00000158 FF35[0C000000]                          push dword [file_descriptor]
+   195 0000015E FF15[00000000]                          call [fprintf]
+   196 00000164 83C408                                  add esp, 4*2
+   197 00000167 58                                      pop eax    
+   198                                          go_on2:
+   199 00000168 88F8                            mov al, bh
+   200 0000016A B400                            mov ah, 0
+   201 0000016C F635[38000000]                  div byte [one]
+   202                                          ;get ones digit of minimum. if existent, print to file
+   203 00000172 3C00                            cmp al, 0
+   204 00000174 7502                            jne print_digit_in_al3
+   205 00000176 EBF0                            jmp go_on2
+   206                                              print_digit_in_al3:
+   207 00000178 0430                                    add al, '0'
+   208 0000017A B400                                    mov ah, 0
+   209 0000017C A3[55000000]                            mov [text], eax
+   210 00000181 68[55000000]                            push dword text
+   211 00000186 FF35[0C000000]                          push dword [file_descriptor]
+   212 0000018C FF15[00000000]                          call [fprintf]
+   213 00000192 83C408                                  add esp, 4*2
+   214                                                   ; close file append mode
+   215 00000195 FF35[0C000000]                  push dword [file_descriptor]
+   216 0000019B FF15[00000000]                  call [fclose]
+   217 000001A1 83C404                          add esp, 4
+   218                                  
+   219                                          
+   220                                        final:  
+   221                                          ; exit(0)
+   222 000001A4 6A00                            push    dword 0      
+   223 000001A6 FF15[00000000]                  call    [exit]       
